@@ -3,7 +3,23 @@ from matplotlib import pyplot as plt
 from matplotlib.ticker import MultipleLocator
 import pandas as pd
 
-def plot_track(data_fp, predictions_fp, metadata, num_clusters, unsupervised, eval_dict, start_sample = 0, end_sample = 20000, vars_to_plot = None, target_fp = None):
+def plot_track(data_fp, predictions_fp, metadata, num_clusters, unsupervised, eval_dict, start_sample = 0, end_sample = 20000, vars_to_plot = None, target_fp = None, filtered_predictions=None):
+    """
+
+    :param data_fp:
+    :param predictions_fp:
+    :param metadata:
+    :param num_clusters:
+    :param unsupervised:
+    :param eval_dict:
+    :param start_sample:
+    :param end_sample:
+    :param vars_to_plot:
+    :param target_fp:
+    :param filtered_predictions: Path to CSV of the same timeseries data to plot (added for cougar data).
+        We perform some rules based filtering of the predictions and want to display those as well
+    :return:
+    """
     input_data = pd.read_csv(data_fp, delimiter = ',', header = None).values
     sr = metadata['sr']
     clip_column_names = metadata['clip_column_names']
@@ -17,6 +33,9 @@ def plot_track(data_fp, predictions_fp, metadata, num_clusters, unsupervised, ev
       num_rows = len(vars_to_plot) + 3
     else:
       num_rows = len(vars_to_plot) + 2
+
+    if filtered_predictions:
+       num_rows += 1
       
     fig, axes = plt.subplots(nrows=num_rows, ncols=1, figsize=(10, 3* num_rows))
     axes[0].set_title(predictions_fp.split('/')[-1] + ' start: ' + str(start_sample) + ' end: ' + str(end_sample))
@@ -44,6 +63,8 @@ def plot_track(data_fp, predictions_fp, metadata, num_clusters, unsupervised, ev
     # Ground truths
     if unsupervised:
       position = -3
+    elif filtered_predictions:
+       position = -3
     else:
       position = -2
     
@@ -90,16 +111,33 @@ def plot_track(data_fp, predictions_fp, metadata, num_clusters, unsupervised, ev
       axes[-1].set_xlabel("Time (seconds)")
       
     else:
+      offset = -1
+      if filtered_predictions:
+         offset = -2
       # Just need to plot predicted class labels
       # assignment clusters -> labels
       to_plot = class_predictions[start_sample: end_sample]
-      axes[-1].set_xlim(left=0, right=(end_sample-start_sample) /sr)
-      axes[-1].scatter(np.arange(len(to_plot))/sr, to_plot, marker = '|', c = to_plot, cmap = 'Set2', norm = norm, linewidths = 0.1)
+      axes[offset].set_xlim(left=0, right=(end_sample-start_sample) /sr)
+      axes[offset].scatter(np.arange(len(to_plot))/sr, to_plot, marker = '|', c = to_plot, cmap = 'Set2', norm = norm, linewidths = 0.1)
       label_ticks = [i for i in range(len(label_names)) if i != unknown_idx]
-      axes[-1].set_yticks(label_ticks)
-      axes[-1].set_yticklabels([label_names[i] for i in label_ticks], fontsize = 8, rotation = 45)
-      axes[-1].set_title("Model Prediction")
-      axes[-1].set_xlabel("Time (seconds)")
+      axes[offset].set_yticks(label_ticks)
+      axes[offset].set_yticklabels([label_names[i] for i in label_ticks], fontsize = 8, rotation = 45)
+      axes[offset].set_title("Model Prediction")
+      axes[offset].set_xlabel("Time (seconds)")
+
+      if filtered_predictions:
+         # add filtered predictions as another subplot
+         filtered_preds = pd.read_csv(filtered_predictions, delimiter = ',', header = None).values.flatten() 
+    
+         offset += 1
+         to_plot = filtered_preds[start_sample: end_sample]
+         axes[offset].set_xlim(left=0, right=(end_sample-start_sample) /sr)
+         axes[offset].scatter(np.arange(len(to_plot))/sr, to_plot, marker = '|', c = to_plot, cmap = 'Set2', norm = norm, linewidths = 0.1)
+         label_ticks = [i for i in range(len(label_names)) if i != unknown_idx]
+         axes[offset].set_yticks(label_ticks)
+         axes[offset].set_yticklabels([label_names[i] for i in label_ticks], fontsize = 8, rotation = 45)
+         axes[offset].set_title("Filtered Model Prediction")
+         axes[offset].set_xlabel("Time (seconds)")
       
     plt.tight_layout()
       

@@ -248,8 +248,14 @@ def generate_evaluations_standalone(metadata,
       if track_length <= 20000:
         visualization.plot_track(fp, predictions_fp, metadata, num_clusters, unsupervised, eval_dict, target_fp = target_fp, start_sample = max(0, track_length - 20000), end_sample = track_length)
       else:
+        # original
         start_sample = rng.integers(0, high = track_length - 20000)
-        visualization.plot_track(fp, predictions_fp, metadata, num_clusters, unsupervised, eval_dict, target_fp = target_fp, start_sample = start_sample, end_sample = start_sample + 20000)
+        end_sample = start_sample + 20000
+        # for cougar plots, we'd like the entire sample plotted
+        start_sample = 0
+        end_sample = track_length - 1
+        visualization.plot_track(fp, predictions_fp, metadata, num_clusters, unsupervised, eval_dict, target_fp = target_fp, start_sample = start_sample, end_sample = end_sample)
+
 
 def generate_evaluations(config):
   # Generates numerical metrics as well as visualizations
