@@ -415,6 +415,7 @@ class SupervisedBehaviorModel(BehaviorModel):
   def predict(self, alldata):
     self.model.eval()
     predslist = []
+    # probslist = []
     pred_len = self.temporal_window_samples
     for i in range(0, np.shape(alldata)[0], pred_len):
       data = alldata[i:i+pred_len, :] # window to acommodate more hidden states
@@ -429,13 +430,42 @@ class SupervisedBehaviorModel(BehaviorModel):
         data = np.expand_dims(data, axis =0)
         data = torch.from_numpy(data).type('torch.FloatTensor').to(self.device)
         preds = self.model(data)
+        # y_scores = preds
+
+        # START: cougar add
+        # # Apply softmax to logits
+        # probs = torch.nn.functional.softmax(preds, dim=1)
+        # probslist.append(probs)
+        #
+        # max_probs, max_indices = torch.max(probs, dim=1)
+        #
+        # threshold = 0.01  # Adjust the threshold as needed
+        #
+        # # Create mask for indices where max probability is below threshold
+        # mask = max_probs < threshold
+        #
+        # # Predict behavior 0 where confidence is below threshold, otherwise predict highest probability class
+        #
+        # # The above line should be corrected as follows:
+        # preds = torch.where(mask, torch.zeros_like(max_indices), max_indices)
+        #
+        # # END: cougar add
         preds = preds.cpu().detach().numpy()
         preds = np.squeeze(preds, axis = 0)
         preds = np.argmax(preds, axis = 0).astype(np.uint8)
+        # preds = np.argmax(preds, axis=0).astype(np.uint8)
+
+# auc for each class of behavior
+# threshold for each behavior?
+#
+        # preds = preds_tens.numpy().astype(np.uint8)
+        # preds = np.argmax(preds, axis = 0).astype(np.uint8)
+        # # matthew try this
+        # preds = np.argmax(preds, axis=1).astype(np.uint8)
         if pad>0:
           preds = preds[:orig_len]
         predslist.append(preds)
       
     preds = np.concatenate(predslist)
+    return preds, None#, probslist
 
-    return preds, None

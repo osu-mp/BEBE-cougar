@@ -218,11 +218,11 @@ def get_model_hyperparam_choices(model_type, dataset_name):
       C_max = [100.]
     
     model_hyperparam_choices = {'downsizing_factor' : [window_samples // 2],
-                                'lr' : [0.01, 0.003, 0.001],
+                                'lr' : [0.01, 0.003],#, 0.003, 0.001],
                                 'weight_decay' : [0],
-                                'n_epochs' : [100],
-                                'hidden_size' : [64],
-                                'temporal_window_samples' : [window_samples], 
+                                'n_epochs' : [50], # 100
+                                'hidden_size' : [32, 64, 128],
+                                'temporal_window_samples' : [window_samples, window_samples * 2, window_samples * 4],
                                 'batch_size' : [32],
                                 'conv_depth' : [conv_depth],
                                 'sparse_annotations' : [True],

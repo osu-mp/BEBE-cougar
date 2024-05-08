@@ -32,7 +32,14 @@ class BehaviorModel():
     target_fp = os.path.join(self.config['final_model_dir'], "final_model.pickle")
     with open(target_fp, 'wb') as f:
       pickle.dump(self, f)
-  
+
+  def load(self, target_fp=None):
+    if not target_fp:
+      target_fp = os.path.join(self.config['final_model_dir'], "final_model.pickle")
+    with open(target_fp, 'rb') as f:
+      model = pickle.load(f)
+    return model
+
   def predict(self, data):
     ##
     # to implement in subclass
@@ -46,4 +53,5 @@ class BehaviorModel():
   def predict_from_file(self, fp):
     inputs = self.load_model_inputs(fp)
     predictions, latents = self.predict(inputs)
-    return predictions, latents
+    # predictions, latents, probs = self.predict(inputs)
+    return predictions, latents#, probs

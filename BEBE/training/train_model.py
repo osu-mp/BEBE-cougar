@@ -1,4 +1,11 @@
-def train_model(config):
+def train_model(config, train=True):
+  """
+  Added train param for Cougar project. Default is True (orig behavior),
+  override to False to skip model training and use already saved model.
+  :param config:
+  :param train:
+  :return:
+  """
   ## Instantiate model
 
   if config['model'] == 'gmm':
@@ -42,11 +49,15 @@ def train_model(config):
     
   model = m(config)
 
-  # Train model
-  print("Training model")
-  model.fit()
-  
-  # Save model
-  model.save()
+  if train:
+    # Train model
+    print("Training model")
+    model.fit()
+
+    # Save model
+    model.save()
+  else:
+    print("Loading model")
+    model.load()
   
   return model
